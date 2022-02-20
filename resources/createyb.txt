@@ -1,0 +1,25 @@
+// YCQL tables
+
+CREATE TABLE patient_raw_data(
+device_id INT,
+value INT,
+eventtime BIGINT,
+distance float,
+PRIMARY KEY(device_id,eventtime))
+WITH CLUSTERING ORDER BY (eventtime DESC);
+
+CREATE TABLE patient_models(
+id INT,
+model TEXT,
+PRIMARY KEY(id));
+
+// YSQL table (Not used - This is TODO)
+
+CREATE TABLE alerts (
+    id INT,
+    eventtime TIMESTAMP,
+    notified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    value FLOAT,
+    base FLOAT,
+    PRIMARY KEY(id, eventtime)
+)
