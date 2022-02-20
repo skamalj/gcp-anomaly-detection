@@ -76,12 +76,11 @@ class ReadFromYCQL(DoFn):
             logger.info("Reading from YCQL for {}".format(k))
             prepared_stmt = self.session.prepare(select_stmt)
             index = 0
-            max_groups = self.limit/100
             for row in self.session.execute(prepared_stmt, (key_id,)):
                 # convert json to string
                 index+=1
                 row['timestamp'] = float(timestamp)
-                yield ((key_id , math.trunc(index%max_groups)), json.dumps(row))
+                yield ((key_id , math.trunc(index/100)), json.dumps(row))
         except Exception as e:
             logger.error("Reading Training Data: Failed to get records for ID: " + str(key_id))
             raise e
