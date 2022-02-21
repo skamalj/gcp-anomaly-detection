@@ -25,7 +25,7 @@ class StatefulCounterDoFn(DoFn):
             if current_value + 1 >= self.limit_count:
                 logging.info("Resetting counter for {}".format(element_pair))
                 counter_state.write(-1)            
-                new_time = Timestamp(seconds=Timestamp.now().seconds() + 300)
+                new_time = Timestamp(seconds=Timestamp.now().seconds() + 600)
                 timer.set(new_time)
                 yield element_pair
             else:

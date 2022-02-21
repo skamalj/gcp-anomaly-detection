@@ -63,13 +63,21 @@ class WriteToYSQL(DoFn):
         self.connection.commit()
 
     # Device is primary key, whose status is updated/created in this function. Hence 'INSERT...ON CONFLICT' is used.
-    def process(self, element):
-        insert_stmt = f"""INSERT INTO {self.table} (id,eventtime,value base) 
+    def process(self, elements):
+        import json
+        from math import trunc
+        insert_stmt = f"""INSERT INTO {self.table} (id,eventtime,value,base) 
                 values (%s,to_timestamp(%s/1000.),%s,%s)"""
+        _, rows = elements
+        logging.info("Recieved anomaly data: " + str(rows))
         try:
-            record = (element[0], element[1], element[2], element[3])
-            self.cursor.execute(insert_stmt, record)
+            for element in rows:
+                logging.info("Processing element: " + str(element))
+                data, distance = element
+                k, v = data
+                json_element = json.loads(v)
+                self.cursor.execute(insert_stmt, (k, json_element['eventtime'], json_element['value'], json_element['base']))
         except Exception as e:
             logging.info(
-                "YSQL: Insertion failed for record: {record} with error: {e}")
+                "YSQL: Insertion failed for record: {} with error: {}".format(elements,e))
             raise e

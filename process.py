@@ -66,18 +66,19 @@ def run(input_sub, model_load_timer, pipeline_args=None):
     is_anomaly = norm_distances | "Filter Anomalies" >> beam.Filter(lambda x: x[1] > 3.0)
     is_anomaly | "Log Anomalies" >> ParDo(LogEventsWithTimestampAndWindow("Anomaly Detected: "))
 
-    # TODO
-    #(is_anomaly
-    #    | "Save Alerts to YSQL" >> ParDo(WriteToYSQL(
-    #            table="alerts",
-    #            database="yugabyte",
-    #            project_id=project_id,
-    #            port=5433,
-    #            user_secret_name="cql_user",
-    #            password_secret_name="cql_password",
-    #            host_secret_name="cql_host",
-    #            ca_cert_secret_name="cql_ca_cert"
-    #        )))   
+    (is_anomaly
+        | "Batch Together For Saving Anomaly Alert" >> beam.GroupBy(lambda x: 1)
+        | "Filter empty" >> beam.Filter(lambda x: len(x) > 0)
+        | "Save Alerts to YSQL" >> ParDo(WriteToYSQL(
+                table="alerts",
+                database="yugabyte",
+                project_id=project_id,
+                port=5433,
+                user_secret_name="cql_user",
+                password_secret_name="cql_password",
+                host_secret_name="cql_host",
+                ca_cert_secret_name="cql_ca_cert"
+            )))   
 
     stream_pipeline.run()
 
