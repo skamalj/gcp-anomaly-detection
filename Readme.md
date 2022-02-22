@@ -1,4 +1,5 @@
 This repo builds following architecture on GCP to train and use ML model, in realtime,  in streaming pipeline. 
+This is detailed in this [blog](https://www.kamalsblog.com/2022/02/realtime-model-training-and-anomaly-detection-with-apache-beam.html)
 
 ![Architecture](resources/Realtime-Model-Training.png)
 

@@ -33,9 +33,9 @@ def run(input_sub, model_load_timer, pipeline_args=None):
     ts_events = raw_events | "Save And Add Timestamp" >> SaveAndTimestampEventsBatch(project_id=project_id)
             
     collected_events = ts_events | "Count And Collect" >> CountAndCollectEvents(project_id=project_id)
-    ( collected_events | "Data Read From YCQL" >> beam.combiners.Count.PerKey()
-        | "Log Data Read from YCQL" >> ParDo(LogEventsWithTimestampAndWindow("Data Read Completed For:")) 
-    )
+    #( collected_events | "Data Read From YCQL" >> beam.combiners.Count.PerKey()
+    #    | "Log Data Read from YCQL" >> ParDo(LogEventsWithTimestampAndWindow("Data Read Completed For:")) 
+    #)
 
     trained_models = (collected_events | "Train Models" >> TrainModels(project_id=project_id))
     (trained_models | "Log Trained Models" >> beam.Map(lambda x: logger.info("MODEL TRAINED: {}".format(x))) )
@@ -66,19 +66,19 @@ def run(input_sub, model_load_timer, pipeline_args=None):
     is_anomaly = norm_distances | "Filter Anomalies" >> beam.Filter(lambda x: x[1] > 3.0)
     is_anomaly | "Log Anomalies" >> ParDo(LogEventsWithTimestampAndWindow("Anomaly Detected: "))
 
-    (is_anomaly
-        | "Batch Together For Saving Anomaly Alert" >> beam.GroupBy(lambda x: 1)
-        | "Filter empty" >> beam.Filter(lambda x: len(x) > 0)
-        | "Save Alerts to YSQL" >> ParDo(WriteToYSQL(
-                table="alerts",
-                database="yugabyte",
-                project_id=project_id,
-                port=5433,
-                user_secret_name="cql_user",
-                password_secret_name="cql_password",
-                host_secret_name="cql_host",
-                ca_cert_secret_name="cql_ca_cert"
-            )))   
+    #(is_anomaly
+    #    | "Batch Together For Saving Anomaly Alert" >> beam.GroupBy(lambda x: 1)
+    #    | "Filter empty" >> beam.Filter(lambda x: len(x) > 0)
+    #    | "Save Alerts to YSQL" >> ParDo(WriteToYSQL(
+    #            table="alerts",
+    #            database="yugabyte",
+    #            project_id=project_id,
+    #            port=5433,
+    #            user_secret_name="cql_user",
+    #            password_secret_name="cql_password",
+    #            host_secret_name="cql_host",
+    #            ca_cert_secret_name="cql_ca_cert"
+    #        )))   
 
     stream_pipeline.run()
 
